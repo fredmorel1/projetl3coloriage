@@ -1,0 +1,100 @@
+<!doctype html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>Jeu du coloriage</title>
+    <link rel="stylesheet" href="./../css/style.css">
+    <link rel="stylesheet" href="/bootstrap/css/bootstrap.min.css">
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="./../js/serv.js"></script>
+    <script
+      type="text/javascript"
+      src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"
+    ></script>
+</head>
+
+<body>
+    <input type="radio" name="btnScreen" id="radio1" checked>
+    <div id="logScreen">
+        <div id="connexion">
+            <p>Choisissez votre pseudo : <br>
+            <input type="text" id="pseudo" placeholder="Tapez ici votre pseudo" size="30">
+            <input type="button" value="Se connecter" id="btnConnecter">
+            </p>
+        </div>
+    </div>
+    <input type="radio" name="btnScreen" id="radio2">
+    <div id="logScreen">
+        <div class="card mb-3">
+            <div class="card-header">En attente d'un autre joueur</div>
+            <div class="card-body mx-auto">
+                <div class="spinner-border" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <input type="radio" name="btnScreen" id="radio3">
+    <div id="logScreen">
+        <div class="card mb-3">
+            <div class="card-header">Choix des paramètres</div>
+            <p>MATCH</p>
+            <div id="playerMatch"></div>
+            <form method="POST" id="formGameMaster" class="d-none">
+                <p>Nombre de couleurs : 
+                    <select name="selCouleurs" id="selCouleurs">
+                        <option value="3" selected="true">3</option>
+                        <option value="4">4</option>
+                        <option value="5">5</option>
+                    </select>
+                </p>
+                <p>Rôle : 
+                    <select name="selRole" id="selRoleGameMaster">
+                        <option value="Attaquant" selected="true">Attaquant</option>
+                        <option value="Defenseur">Defenseur</option>
+                    </select>
+                </p>
+                <p>Nombre de noeuds : 
+                    <select name="selNoeuds" id="selNoeuds">
+                        <option value="5">5</option>
+                        <option value="6">6</option>
+                        <option value="7" selected="true">7</option>
+                        <option value="8">8</option>
+                        <option value="9">9</option>
+                        <option value="10">10</option>
+                    </select>
+                </p>
+            </form>
+            <form method="POST" id="formGuest" class="d-none">
+                <p>Rôle : 
+                    <select name="selRole" id="selRoleGuest">
+                        <option value="Attaquant">Attaquant</option>
+                        <option value="Defenseur">Defenseur</option>
+                    </select>
+                </p>
+            </form>
+            <input type="button" value="Lancer la partie" id="btnLancer">
+        </div>
+    </div>
+        <input type="radio" name="btnScreen" id="radio4">
+        <div id="logScreen">
+            <div class="card mb-3">
+                <div class="card-header">En attente de ton adversaire</div>
+                <div class="card-body mx-auto">
+                    <div class="spinner-border" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <input type="radio" name="gameScreen" id="radio5">
+            <div id="logScreen">
+                <script src="./../../node_modules/@eastdesire/jscolor/jscolor.js"></script>
+                <div id="mynetwork"></div>
+            </div>
+</body>
+
+</html>
+
+     

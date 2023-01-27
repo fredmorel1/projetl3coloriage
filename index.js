@@ -28,7 +28,7 @@ const player1 = {
   host: true,
   playedCell: "",
   username: "",
-  turn: false,
+  turn: true,
   win: false
 };
 
@@ -38,7 +38,7 @@ const player2 = {
   host: false,
   playedCell: "",
   username: "",
-  turn: false,
+  turn: true,
   win: false
 };
 
@@ -46,7 +46,7 @@ let players = [];
 
 io.on('connection', function (socket) {
   console.log('Nouvel utilisateur connecté !');
-
+  var currentID = null;
   /**
      *  Doit être la première action après la connexion.
      *  @param  id  string  l'identifiant saisi par le client
@@ -90,13 +90,16 @@ io.on('connection', function (socket) {
     if(data[0] == 0){
       players[1].ready = true;
       if(data[1] == "Attaquant"){
+        console.log("NON");
         players[1].attaquant = true;
+        players[1].turn = false;
       }
       console.log("L'invité a choisi le rôle : " + data[1]);
     }else{
       players[0].ready = true;
       if(data[1] == "Attaquant"){
         players[0].attaquant = true;
+        players[0].turn = false;
       }
       console.log("L'hôte a choisi le rôle : " + data[1]);
       console.log("\t\tLe nombre de noeuds : " + data[2]);
@@ -117,27 +120,52 @@ io.on('connection', function (socket) {
   });
 
   socket.on("cliqueSommet", function(data) {
-    console.log("Un joueur a colorié un sommet", data[1]);
+    console.log(data);
+    console.log(data[2]);
+    if(data[2] == player1.username && player1.turn == false){
+      socket.emit("notYourTurn");
+      return;
+    }
+    if(data[2] == player2.username && player2.turn == false){
+      socket.emit("notYourTurn");
+      return;
+    }
+    console.log("Le joueur "+data[2]+" a colorié le sommet "+data[0]+" avec la couleur "+ data[1]);
+    if(data[2] == player1.username){
+      console.log("salut");
+      player1.turn = false;
+      player2.turn = true;
+    }else{
+      console.log("yo");
+      player1.turn = true;
+      player2.turn = false;
+    }
     io.emit("reponseSommet", data);
   });
 
-  /*socket.on('mise à jour sommet', (data) => {
-    // Mettez à jour l'interface utilisateur en fonction des données reçues
-  });
   
-  // Envoyer une demande de coloriage au serveur
-  socket.emit('colorie sommet', data);*/
-  
-  socket.on('disconnect', () => {
-    console.log('Utilisateur déconnecté !');
-    socket.broadcast.emit("out");
-    players = players.filter((p) => p !== socket);
-  });
-
-  socket.on('logout', () => {
-    console.log('Joueur déconnecté !');
-    players = players.filter((p) => p !== socket);
-    socket.emit("out");
+  socket.on('disconnect', function(reason) {
+    if(currentID){
+      console.log("Joueur ("+currentID+") déconnecté !");
+      socket.broadcast.emit("out");
+      if(currentID == player1.username){
+        console.log("salut");
+        players.splice(0,1);
+      }else{
+        players = players.splice(1,1);
+      }
+      if(players.length == 1){
+        players.splice(0,1);
+        player1.ready = false;
+        player2.ready = false;
+        player1.attaquant = false;
+        player2.attaquant = false;
+        console.log(players);
+        io.emit("loadingScreen");
+      }
+    }else{
+      console.log("Un utilisateur anonyme s'est déconnecté !");
+    }
   });
 
 });

@@ -51,7 +51,7 @@
                 </p>
                 <p>Rôle : 
                     <select name="selRole" id="selRoleGameMaster">
-                        <option value="Attaquant" selected="true">Attaquant</option>
+                        <option value="Attaquant">Attaquant</option>
                         <option value="Defenseur">Defenseur</option>
                     </select>
                 </p>
@@ -90,8 +90,13 @@
         </div>
         <input type="radio" name="gameScreen" id="radio5">
             <div id="logScreen">
-                <script src="./../../node_modules/@eastdesire/jscolor/jscolor.js"></script>
+                <script type="application/javascript" src="./../jscolor.js"></script>
                 <div id="mynetwork"></div>
+                <div id="color-palette">
+                    <input class="jscolor" value="ff0000" id="redColor">
+                    <input class="jscolor" value="00ff00" id="greenColor">
+                    <input class="jscolor" value="0000ff" id="blueColor">
+                  </div>
             </div>
 </body>
 

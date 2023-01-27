@@ -11,6 +11,12 @@ document.addEventListener("DOMContentLoaded", function(_e) {
     var joueurs = [];
     const turnMsg = document.getElementById('turn-message');
 
+
+    var redColor = document.getElementById("redColor");
+    var greenColor = document.getElementById("greenColor");
+    var blueColor = document.getElementById("blueColor");
+    // Initialisation de la variable pour stocker la couleur sélectionnée
+    var selectedColor = null;
     function sendData(){
       // recupération du pseudo
       var user = document.getElementById("pseudo").value.trim();
@@ -18,8 +24,6 @@ document.addEventListener("DOMContentLoaded", function(_e) {
       currentUser = user; 
       // ouverture de la connexion
       socket.emit("login", user);
-      document.getElementById("btnConnecter").value = "En attente...";
-      document.getElementById("btnConnecter").disabled = true;
       document.getElementById("radio1").checked = false;
       document.getElementById("radio3").checked = false;
       document.getElementById("radio2").checked = true;
@@ -52,29 +56,24 @@ document.addEventListener("DOMContentLoaded", function(_e) {
 
       socket.on("waitingPlayer", function(player){
         console.log("salut");
-        var optionToRemove;
+        console.log(player);
         if(player.host != true){
           let sel = document.getElementById("selRoleGameMaster");
-          if(player.attaquant){
+          if(player.attaquant == true){
             document.getElementById("playerMatch").innerHTML += "<p>L'invité a choisi le rôle : Attaquant</p>"
-            optionToRemove = sel.options[0];
-            sel.remove(optionToRemove);
+            sel.remove(0);
           }else{
             document.getElementById("playerMatch").innerHTML += "<p>L'invité a choisi le rôle : Défenseur</p>"
-            optionToRemove = sel.options[1];
-            sel.remove(optionToRemove);
+            sel.remove(1);
           }
         }else{
           let sel2 = document.getElementById("selRoleGuest");
-          if(player.attaquant){
+          if(player.attaquant == true){
             document.getElementById("playerMatch").innerHTML += "<p>L'hôte a choisi le rôle : Attaquant</p>"
-            console.log("here");
-            optionToRemove = sel2.options[0];
-            sel2.remove(optionToRemove);
+            sel2.remove(0);
           }else{
             document.getElementById("playerMatch").innerHTML += "<p>L'hôte a choisi le rôle : Défenseur</p>"
-            optionToRemove = sel2.options[1];
-            sel2.remove(optionToRemove);
+            sel2.remove(1);
           }
         }
       });
@@ -95,7 +94,21 @@ document.addEventListener("DOMContentLoaded", function(_e) {
         document.getElementById("radio4").checked = true;
         socket.emit("startGame",values);
       });
-
+      //Ecouteur lors d'un clique sur une couleur de la palette
+      //Using jsColor
+      document.getElementById("redColor").addEventListener("click", () => {
+        selectedColor = "red";
+        console.log(selectedColor);
+      });
+      document.getElementById("greenColor").addEventListener("click", () => {
+        selectedColor = "green";
+        console.log(selectedColor);
+      });
+      document.getElementById("blueColor").addEventListener("click", () => {
+        selectedColor = "blue";
+        console.log(selectedColor);
+      });
+      //Using jsColor
       socket.on("goJeuCouleurs", function(player){
         document.getElementById("radio4").checked = false;
         document.getElementById("radio5").checked = true;
@@ -156,32 +169,55 @@ document.addEventListener("DOMContentLoaded", function(_e) {
         network.on("click", function(event) {
           // Vérifiez si l'événement est déclenché par un sommet
           if (event.nodes.length > 0) {
-            if(n==0){
-              console.log("azerazr");
-              if(currentUser.attaquant == true){
-                console.log("oui");
-                return;
-              }
+            console.log(selectedColor);
+            if(selectedColor == null){
+              alert("Veuillez choisir une couleur");
+              return;
             }
             // Obtenez le sommet ciblé par l'événement
             var nodeId = event.nodes[0];
             // Récupère le noeud avec l'identifiant
             var node = network.body.nodes[nodeId]
+            var res = checkNeighbors(nodeId, selectedColor);
+            if(res == false){
+              alert("Vous ne pouvez pas choisir cette couleur");
+              return;
+            }
+
             // update la propriété color de l'objet node
-            var v = [nodeId,'yellow'];
+            var v = [nodeId,selectedColor,currentUser];
             socket.emit("cliqueSommet", v);
-            //network.body.data.nodes.update({id: nodeId, color: color})
-            // Obtenez les voisins du sommet
-            /*var neighbors = network.getConnectedNodes(nodeId);
-            console.log("Voisins du sommet :", neighbors);*/
-            n = n+1;
           }
         });
       });
+      // La fonction pour vérifier les sommets voisins
+      function checkNeighbors(nodeId, color) {
+        // Parcours des arêtes adjacentes
+        var neighbors = network.getConnectedNodes(nodeId);
+        var valid = true;
+        neighbors.forEach(function(neighborId) {
+          var neighbor = network.body.data.nodes.get(neighborId);
+          if (neighbor.color === color) {
+              console.log("Le noeud voisin " + neighborId + " a la même couleur que le noeud " + nodeId);
+              valid = false;
+          }
+        });
+      return valid;
+      }
       socket.on("reponseSommet", function(data) {
         console.log(data[1]);
+        if(data[2] == joueurs[0]){
+          console.log("salut");
+          joueurs[0].turn = false;
+          joueurs[1].turn = true;
+        }else{
+          console.log("yo");
+          joueurs[0].turn = true;
+          joueurs[1].turn = false;
+        }
         network.body.data.nodes.update({id: data[0], color: data[1]});
       });
+
       socket.on("erreur-connexion", function(msg) {
         alert(msg);
         document.getElementById("radio1").checked = true;
@@ -189,5 +225,21 @@ document.addEventListener("DOMContentLoaded", function(_e) {
         document.getElementById("radio2").checked = false;   
         document.getElementById("btnConnecter").value = "Se connecter";
         document.getElementById("btnConnecter").disabled = false;
+    });
+    socket.on("notYourTurn", () => {
+      alert("Ce n'est pas ton tour de jouer");
+    });
+    socket.on("loadingScreen", () => {
+      alert("Adversaire déconnecté, retour à l'écran de chargement");
+      joueurs = [];
+      location.reload();
+      document.getElementById("radio1").checked = true;
+      document.getElementById("radio3").checked = false;
+      document.getElementById("radio2").checked = false; 
+      document.getElementById("radio4").checked = false;
+      document.getElementById("radio5").checked = false; 
+      document.getElementById("radio6").checked = false; 
+      document.getElementById("btnConnecter").value = "Se connecter";
+      document.getElementById("btnConnecter").disabled = false;
     });
 });
